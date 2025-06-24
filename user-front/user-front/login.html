@@ -13,6 +13,89 @@
 		<!-- 所有标签都要放在div容器中,该容器会被vue检测加载，如果标签在该div之外，则vue不会加载 -->
 		<div id="loginApp">
 			
+			<el-row>
+				<el-col :span="8" :offset="8">
+					
+					<el-card>
+						<h1>用户登录</h1> <!-- 标题-->
+						<el-form>
+							<el-form-item>
+								<!-- v-model是vue的双向绑定指令，会绑定一个变量，一般用在form表单的输入框中 -->
+								<el-input v-model="username" placeholder="请输入用户名"></el-input>
+							</el-form-item>
+							<el-form-item> 
+								<!-- show-password---是否明文显示密码的开关，默认关闭 -->
+								<el-input v-model="password" placeholder="请输入密码" show-password></el-input>
+							</el-form-item>
+							<el-form-item>
+								<!-- @是事件触发指令，把click交给login方法 -->
+								<el-button type="primary" @click="login">登录</el-button>
+							</el-form-item>
+						</el-form>
+					</el-card>
+					
+					
+				</el-col>
+			</el-row>
+			
+			
+			
 		</div>
 	</body>
+	
+	<script>
+		// 初始化vue对象
+		new Vue({
+			// vue检测加载标签的范围
+			el:"#loginApp",
+			data(){
+				return {
+					username:'',
+					password:''
+				}
+			},
+			// 所有方法都在methods里面定义 
+			methods:{
+				login(){
+					// 1. 封装输入框中的用户名和密码
+					let param = {}; // 初始化一个空对象
+					param.username = this.username;
+					param.password = this.password;
+					
+					// 2. 通过axios向后台发送请求并处理返回结果
+					axios.post("http://localhost:8088/user/login", param)
+					.then(result=>{
+						console.log(result); // 会在控制台将result打印出来
+						 // 后台返回的结果存在result和data属性中
+						 let data = result.data;
+						 // 判断data中code是否为200，则表示登陆成功，否则表示登陆失败
+						if (data.code == 200){
+							
+							// 把username保存到缓存中
+							sessionStorage.setItem("username", this.username);
+							
+							// 页面跳转
+							location.href="index.html";
+						}else{
+							this.$message.error(data.msg);
+						}
+					})
+					
+				}
+			}
+		})
+	</script>
+	
+	<style>
+		/* el在elementUI中是被当做类的，对类的CSS则需要在前边加个点 */
+		.el-col {
+			text-align: center;
+			margin-top:25vh;
+		}
+		body{
+			background-image:url(./img/back.jpg);
+			background-size: cover;
+		}
+	</style>
+	
 </html>

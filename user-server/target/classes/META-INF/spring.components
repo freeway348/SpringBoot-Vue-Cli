@@ -1,3 +1,4 @@
 com.springboot.userserver.UserServerApplication=org.springframework.stereotype.Component,org.springframework.boot.SpringBootConfiguration
+com.springboot.userserver.config.CorsConfig=org.springframework.stereotype.Component
 com.springboot.userserver.user.controller.UserController=org.springframework.stereotype.Component
 com.springboot.userserver.user.service.impl.UserServiceImpl=org.springframework.stereotype.Component
