@@ -2,7 +2,10 @@ package com.springboot.userserver.user.controller;
 
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.springboot.userserver.user.dto.LoginUser;
+import com.springboot.userserver.user.dto.QueryUser;
+import com.springboot.userserver.user.entity.User;
 import com.springboot.userserver.user.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,4 +64,22 @@ public class UserController {
 
         return obj;
     }
+
+    @GetMapping("/page")
+    public JSONObject page(QueryUser queryUser){
+
+        // 1. 将请求参数转发给service处理
+        Page<User> result = userService.pageUser(queryUser);
+
+        // 2. 获取处理结果，返回给前端
+        // 如果获取值result为空，则返回给前端也没有影响，不会出现页面为空的情况
+        JSONObject obj = new JSONObject();
+        obj.put("code", 200);
+        obj.put("rows", result.getRecords()); // Records存储的是查询到的数据链表；而getTotal()存储的是查询到的数据总数
+        obj.put("total", result.getTotal());
+
+
+        return obj;
+    }
+
 }

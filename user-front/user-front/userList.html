@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<script src="js/vue.js"></script>
+		<script src="js/index.js"></script>
+		<script src="js/axios.min.js"></script>
+		<link href="css/index.css" rel="stylesheet"/>
+	</head>
+	<body>
+		<div id="userApp">
+			<el-form :inline="true">
+				<el-form-item>
+					<el-input v-model="username" placeholder="用户名"></el-input>
+				</el-form-item>
+				<el-form-item>
+					<el-button type="primary" @click="getUserList">查询</el-button>
+				</el-form-item>
+				<el-form-item>
+					<el-button type="primary" @click="showAddUser">添加用户</el-button>
+				</el-form-item>
+			</el-form>
+			
+			
+			<!-- 表格 -->
+			<el-table :data="userList" border style="width: 100%">
+				<el-table-column fixed prop="id" label="序号">
+				</el-table-column>
+				<el-table-column prop="username" label="用户名">
+				</el-table-column>
+				<el-table-column prop="email" label="邮箱">
+				</el-table-column>
+				<el-table-column prop="sex" label="性别">
+				</el-table-column>
+				<el-table-column prop="age" label="年龄">
+				</el-table-column>
+				<el-table-column prop="address" label="住址">
+				</el-table-column>
+				<el-table-column fixed="right" label="操作" width="100">
+					<template slot-scope="scope">
+						<el-button type="text" size="small">查看</el-button>
+						<el-button type="text" size="small">编辑</el-button>
+					</template>
+				</el-table-column>
+			</el-table>
+			
+			<!-- 分页 -->
+			<!-- 
+			 current-page：当前页，页码
+			 page-size：每页显示的数据条数
+			 total：总数据条数
+			 
+			 size-change：当pageSize变化时间，触发的事件
+			 current-change：当页码发生变化时，触发的事件
+			 -->
+			<el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+				:current-page="pageNumber" :page-sizes="[5, 10, 20, 50]" :page-size="pageSize"
+				layout="total, sizes, prev, pager, next, jumper" :total="total" style="text-align: right">
+			</el-pagination>
+			
+			<!--添加用户对话框，用于添加用户时填写信息-->
+			<!--
+				visible.sync:控制对话框是否显示的开关，默认为false，如果为true表示打开对话框，如果为false，表示关闭对话框
+			-->
+			<el-dialog title="添加用户" :visible.sync="addUserVisible">
+			  <el-form :model="addUser">
+			    <el-form-item label="用户名" :label-width="formLabelWidth">
+			      <el-input v-model="addUser.username" autocomplete="off"></el-input>
+			    </el-form-item>
+				<el-form-item label="密码" :label-width="formLabelWidth">
+				  <el-input v-model="addUser.password" autocomplete="off" show-password></el-input>
+				</el-form-item>
+				<el-form-item label="邮箱" :label-width="formLabelWidth">
+				  <el-input v-model="addUser.email" autocomplete="off"></el-input>
+				</el-form-item>
+				
+			    <el-form-item label="性别" :label-width="formLabelWidth">
+			      <el-select v-model="addUser.sex" placeholder="请选择">
+			        <el-option label="男" value="男"></el-option> <!--label是能看到的值，最终能存入数据库的就是value中的值-->
+			        <el-option label="女" value="女"></el-option>
+			      </el-select>
+			    </el-form-item>
+				
+				<el-form-item label="年龄" :label-width="formLabelWidth">
+				  <el-input v-model="addUser.age" autocomplete="off"></el-input>
+				</el-form-item>
+				<el-form-item label="住址" :label-width="formLabelWidth">
+				  <el-input v-model="addUser.address" autocomplete="off"></el-input>
+				</el-form-item>
+				
+				
+			  </el-form>
+			  <div slot="footer" class="dialog-footer">
+			    <el-button @click="cancelAddUser">取 消</el-button>
+			    <el-button type="primary">确 定</el-button>
+			  </div>
+			</el-dialog>
+			
+		</div>
+	</body>
+	
+	<script>
+		new Vue({
+			el:"#userApp",
+			data(){
+				return { // 设置默认值
+					username:'',
+					userList: [],
+					pageNumber: 1,
+					pageSize: 5,
+					total: 0,
+					addUserVisible: false,
+					addUser:{}, // 初始化为空对象
+					formLabelWidth: '80px'
+				}
+			},
+			methods:{ 
+				// 修改当前页面值，实现的功能就是点击前往下一页，并显示下一页的内容
+				handleCurrentChange(val){ // val 就是目前的页码
+					// 1. 把新页码赋值给pageNumber
+					this.pageNumber = val;
+					// 2. 根据新页码刷新链表
+					this.getUserList();
+					
+				},
+				// 修改每页显示最大数量
+				handleSizeChange(val){ // 修改每页显示条数时，会将新的每页显示条数传给val
+					this.pageSize = val;
+					this.getUserList();
+				},
+				getUserList(){
+					// 1. 封装参数
+					let param = {};
+					param.pageNumber = this.pageNumber;
+					param.pageSize = this.pageSize;
+					param.username = this.username;
+					
+					// 2. 发送请求，获取结果
+					// axios的get请求传递参数是固定格式：{params:xxxx}  xxxx 是传递的参数
+					axios.get("http://localhost:8088/user/page", {params: param})
+					.then(result=>{
+						let data = result.data; // 后台返回的数据存储在data中
+						this.userList = data.rows;
+						this.total = data.total;
+					})
+					
+				},
+				showAddUser(){
+					// 打开添加用户对话框
+					this.addUserVisible = true;
+				},
+				cancelAddUser(){
+					// 先清空addUser对象
+					this.addUser = {};
+					
+					
+					// 关闭添加用户对话框
+					this.addUserVisible = false;
+				}
+			},
+			mounted(){ // 当页面加载完成后，自动触发的事件
+				this.getUserList();
+			}
+		})
+	</script>
+	
+	
+</html>

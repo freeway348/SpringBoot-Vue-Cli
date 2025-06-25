@@ -1,7 +1,9 @@
 package com.springboot.userserver.user.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.springboot.userserver.user.dto.LoginUser;
+import com.springboot.userserver.user.dto.QueryUser;
 import com.springboot.userserver.user.entity.User;
 import com.springboot.userserver.user.mapper.UserMapper;
 import com.springboot.userserver.user.service.UserService;
@@ -45,5 +47,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return true;
 
         return false;
+    }
+
+    @Override
+    public Page<User> pageUser(QueryUser queryUser) {
+        // 1. 初始化分页对象Page，设置pageNumber和pageSize
+        Page<User> p = new Page<>(queryUser.getPageNumber(), queryUser.getPageSize());
+
+        // 2. 判断筛选条件是否为空，不为空则给条件构造器，构造筛选条件
+        QueryWrapper<User> w = new QueryWrapper<>();
+        if(!ObjectUtils.isEmpty(queryUser.getUsername())){
+            // 相当于sql: where username like '% ? %'
+            w.like("username", queryUser.getUsername());
+        }
+
+        // 3. 调用mybatis-plus提供的page方法进行分页查询，返回查询结果
+        Page<User> result = this.page(p, w);
+
+        return result;
     }
 }

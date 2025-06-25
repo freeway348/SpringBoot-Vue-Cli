@@ -3,8 +3,121 @@
 	<head>
 		<meta charset="utf-8" />
 		<title></title>
+		<!-- 导入先后顺序：vue先导入，index后导入 -->
+		<script src="js/vue.js"></script>
+		<script src="js/index.js"></script>
+		<script src="js/axios.min.js"></script>
+		<!-- 导入css组件 -->
+		<link href="css/index.css" rel="stylesheet">
 	</head>
 	<body>
-		
+		<div id="indexApp">
+			<!-- 布局容器 -->
+			<el-container>
+				<!-- 头部容器 -->
+				<el-header>
+					<div id="header-container">
+						<div><span><b>用户管理系统</b></span></div>
+						<div>
+							<!-- {{}}：插值表达式，用来绑定文本区域中的变量 -->
+							<span>{{username}}</span>
+							<el-button type="success" size="small" @click="logout">退出登录</el-button>
+						</div>
+					</div>
+				</el-header>
+				<el-container>
+					<el-aside width="200px">
+						<el-menu default-active="0" class="el-menu-vertical-demo">
+							<el-submenu index="0">
+								<template slot="title">
+									<i class="el-icon-user-solid"></i> <!--图标标签-->
+									<span>用户管理</span>
+								</template>
+								<el-menu-item @click="openUrl('userList.html')">  <!--openurl是要打开文件的路径-->
+									用户列表
+								</el-menu-item>
+							</el-submenu>
+
+							<el-submenu index="1">
+								<template slot="title">
+									<i class="el-icon-platform-eleme"></i>
+									<span>订单管理</span>
+								</template>
+								<el-menu-itemz>
+									订单列表
+								</el-menu-item>
+							</el-submenu>
+
+						</el-menu>
+					</el-aside>
+					<el-main>
+						<!-- v-bind:属性绑定指令，给属性绑定一个变量，简写：‘:’ -->
+						<iframe :src="url" width="100%" height="99%" frameborder="0"></iframe>
+					</el-main>
+				</el-container>
+			</el-container>
+
+		</div>
 	</body>
+
+	<script>
+		new Vue({
+			el: "#indexApp",
+			data(){
+				return {
+					username:sessionStorage.getItem('username'),
+					url:''
+				}
+			},
+			methods:{
+				logout(){
+					// 1. 清除缓存
+					sessionStorage.clear();
+					
+					// 2. 跳转到login页面
+					location.href='login.html';
+				},	
+				openUrl(currentUrl){
+					this.url = currentUrl;
+				}
+			}
+		})
+	</script>
+
+	<style>
+		#header-container {
+			display: flex;
+			justify-content: space-between;
+			line-height: 60px;
+			color: white;
+		}
+
+		.el-header {
+			background-color: lightseagreen;
+		}
+
+		html,
+		body {
+			height: 100%;
+			margin: 0px;
+
+			/* 
+			 第二种方式
+			 position:fixed;
+			 height:100vh;
+			 
+			 */
+		}
+
+		#indexApp,
+		.el-container {
+			height: 100%;
+		}
+
+		.el-aside,
+		.el-menu {
+			height: 100%;
+			background-color: whitesmoke;
+		}
+	</style>
 </html>
