@@ -82,4 +82,39 @@ public class UserController {
         return obj;
     }
 
+    @PostMapping("/add")
+    public JSONObject add(@RequestBody User user){ // 原本是不允许使用/entity下的实体类对象的（不符合开发规范），因为实体类一般不修改其字段，但前端传过来的数据不一定与该实体类的对象一致，所以可能更改实体类（但这样做会导致实体类无法与数据库中数据进行配对），所以一般不使用实体类
+
+        boolean result = userService.save(user); // 使用mybatis-plus中的save方法，将前端传入的数据存到数据表中，并返回结果（是否成功）
+
+
+        JSONObject obj = new JSONObject();
+
+        if (result){ // 保存数据成功
+            obj.put("code", 200);
+            obj.put("msg", "添加用户成功");
+        }else {
+            obj.put("code", 500);
+            obj.put("msg", "添加用户失败");
+        }
+        return obj;
+    }
+
+    @PostMapping("/update")
+    public JSONObject update(@RequestBody User user){
+        boolean result = userService.updateById(user); // mybatis-plus的方法，在单表中mybatis-plus比mybatis方便，但在多表中这俩差不多
+        // 使用预加载，将数据预先存储到redis中，比用mysql语句查询的实时性会更好，适合在实时性要求高时使用
+        JSONObject obj = new JSONObject();
+        if (result){
+            obj.put("code", 200);
+            obj.put("msg", "修改用户成功");
+        }else {
+            obj.put("code", 500);
+            obj.put("msg", "修改用户失败");
+        }
+
+        return obj;
+    }
+
+
 }

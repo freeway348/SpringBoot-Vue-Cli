@@ -38,9 +38,11 @@
 				<el-table-column prop="address" label="住址">
 				</el-table-column>
 				<el-table-column fixed="right" label="操作" width="100">
-					<template slot-scope="scope">
-						<el-button type="text" size="small">查看</el-button>
-						<el-button type="text" size="small">编辑</el-button>
+					<!--  scopre = userList，而不是与id、username这些字段对应 -->
+					<!-- 虽然表格中没有password变量，但后台查询结果返回了password，所以在scope里也有password变量，所以在修改用户对话框里有password数据 -->
+					<template slot-scope="scope"> <!--该scope存储的数据就是userList(整个表)的数据-->
+						<el-button type="text" size="small" @click="showUpdateUser(scope.row)">修改</el-button> <!--获取一行的数据-->
+						<el-button type="text" size="small">删除</el-button>
 					</template>
 				</el-table-column>
 			</el-table>
@@ -64,10 +66,10 @@
 				visible.sync:控制对话框是否显示的开关，默认为false，如果为true表示打开对话框，如果为false，表示关闭对话框
 			-->
 			<el-dialog title="添加用户" :visible.sync="addUserVisible">
-			  <el-form :model="addUser">
+			  <el-form :model="addUser"> <!--初始是个空对象，在其中加入几个变量，它就存储了多少个变量-->
 			    <el-form-item label="用户名" :label-width="formLabelWidth">
 			      <el-input v-model="addUser.username" autocomplete="off"></el-input>
-			    </el-form-item>
+			    </el-form-item> <!--添加属性到addUser中-->
 				<el-form-item label="密码" :label-width="formLabelWidth">
 				  <el-input v-model="addUser.password" autocomplete="off" show-password></el-input>
 				</el-form-item>
@@ -93,7 +95,43 @@
 			  </el-form>
 			  <div slot="footer" class="dialog-footer">
 			    <el-button @click="cancelAddUser">取 消</el-button>
-			    <el-button type="primary">确 定</el-button>
+			    <el-button type="primary" @click="saveUser">确 定</el-button>
+			  </div>
+			</el-dialog>
+			
+			
+			<!--修改用户对话框-->
+			<el-dialog title="修改用户" :visible.sync="updateUserVisible">
+			  <el-form :model="updateUser"> <!--初始是个空对象，在其中加入几个变量，它就存储了多少个变量-->
+			    <el-form-item label="用户名" :label-width="formLabelWidth">
+			      <el-input v-model="updateUser.username" autocomplete="off"></el-input>
+			    </el-form-item> <!--添加属性到updateUser中-->
+				<el-form-item label="密码" :label-width="formLabelWidth">
+				  <el-input v-model="updateUser.password" autocomplete="off" show-password></el-input>
+				</el-form-item>
+				<el-form-item label="邮箱" :label-width="formLabelWidth">
+				  <el-input v-model="updateUser.email" autocomplete="off"></el-input>
+				</el-form-item>
+				
+			    <el-form-item label="性别" :label-width="formLabelWidth">
+			      <el-select v-model="updateUser.sex" placeholder="请选择">
+			        <el-option label="男" value="男"></el-option> <!--label是能看到的值，最终能存入数据库的就是value中的值-->
+			        <el-option label="女" value="女"></el-option>
+			      </el-select>
+			    </el-form-item>
+				
+				<el-form-item label="年龄" :label-width="formLabelWidth">
+				  <el-input v-model="updateUser.age" autocomplete="off"></el-input>
+				</el-form-item>
+				<el-form-item label="住址" :label-width="formLabelWidth">
+				  <el-input v-model="updateUser.address" autocomplete="off"></el-input>
+				</el-form-item>
+				
+				
+			  </el-form>
+			  <div slot="footer" class="dialog-footer">
+			    <el-button @click="cancelUpdateUser">取 消</el-button>
+			    <el-button type="primary" @click="modifyUser">确 定</el-button>
 			  </div>
 			</el-dialog>
 			
@@ -112,7 +150,9 @@
 					total: 0,
 					addUserVisible: false,
 					addUser:{}, // 初始化为空对象
-					formLabelWidth: '80px'
+					formLabelWidth: '80px',
+					updateUserVisible: false,
+					updateUser:{}
 				}
 			},
 			methods:{ 
@@ -157,6 +197,49 @@
 					
 					// 关闭添加用户对话框
 					this.addUserVisible = false;
+				},
+				saveUser(){
+					axios.post("http://localhost:8088/user/add", this.addUser)
+					.then(result=>{
+						let data = result.data;
+						if (data.code = 200){
+							this.$message.success(data.msg);
+							this.addUserVisible=false;
+							this.getUserList();
+							this.addUser={};
+						}else{
+							this.$message.error(data.msg);
+						
+						}
+					})
+				},
+				showUpdateUser(row){
+					// 1. 把当前行数据回写到updateUser对象，使当前行数据显示在修改对话框中
+					this.updateUser=row;
+					
+					// 2. 打开修改用户对话框
+					this.updateUserVisible=true;
+				},
+				cancelUpdateUser(){
+					// 1. 直接关闭修改用户对话框
+					this.updateUserVisible=false;
+					// 因为修改的是scope.row，而scope.row对应的是表单里的数据，所以该修改对表单也进行了修改，取消后表单会显示原先想要修改的内容，但刷新后会消失（因为并未载入数据库中）
+					// 2. 刷新列表，解决取消后表格数据依然被修改的问题
+					this.getUserList();
+				
+				},
+				modifyUser(){ // 将修改的数据提交到后台，到后台去保存
+					axios.post("http://localhost:8088/user/update", this.updateUser)
+					.then(result=>{
+						let data = result.data;
+						if (data.code = 200){
+							this.$message.success(data.msg);
+							this.updateUserVisible=false;
+						}else{
+							this.$message.error(data.msg);
+						
+						}
+					})
 				}
 			},
 			mounted(){ // 当页面加载完成后，自动触发的事件
