@@ -40,4 +40,5 @@ public class SaleServiceImpl extends ServiceImpl<SaleMapper, Sale> implements Sa
         return result;
 
     }
+
 }

@@ -6,13 +6,23 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.springboot.userserver.sale.dto.QuerySale;
 import com.springboot.userserver.sale.entity.Sale;
 import com.springboot.userserver.sale.service.SaleService;
-import com.springboot.userserver.user.dto.LoginUser;
-import com.springboot.userserver.user.dto.QueryUser;
-import com.springboot.userserver.user.entity.User;
-import com.springboot.userserver.user.service.UserService;
+import com.springboot.userserver.sale.dto.QuerySale;
+import com.springboot.userserver.sale.entity.Sale;
+import com.springboot.userserver.sale.service.SaleService;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -57,10 +67,10 @@ public class SaleController {
 
         if (result){ // 保存数据成功
             obj.put("code", 200);
-            obj.put("msg", "添加用户成功");
+            obj.put("msg", "添加促销活动成功");
         }else {
             obj.put("code", 500);
-            obj.put("msg", "添加用户失败");
+            obj.put("msg", "添加促销活动失败");
         }
         return obj;
     }
@@ -72,10 +82,10 @@ public class SaleController {
         JSONObject obj = new JSONObject();
         if (result){
             obj.put("code", 200);
-            obj.put("msg", "修改用户成功");
+            obj.put("msg", "修改促销活动成功");
         }else {
             obj.put("code", 500);
-            obj.put("msg", "修改用户失败");
+            obj.put("msg", "修改促销活动失败");
         }
 
         return obj;
@@ -92,10 +102,10 @@ public class SaleController {
 
         if (result){
             obj.put("code", 200);
-            obj.put("msg", "删除用户成功");
+            obj.put("msg", "删除促销活动成功");
         }else {
             obj.put("code", 500);
-            obj.put("msg", "删除用户失败");
+            obj.put("msg", "删除促销活动失败");
         }
 
         return obj;
@@ -131,4 +141,59 @@ public class SaleController {
         stats.put("endCount", endCount);
         return stats;
     }
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportSales() throws IOException {
+        // 从数据库获取用户列表
+        List<Sale> saleList = saleService.list();
+        // 检查 saleList 是否为 null，若为 null 则初始化为空列表
+        if (saleList == null) {
+            saleList = new ArrayList<>();
+        }
+
+        // 创建工作簿和工作表
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("促销活动列表");
+
+        // 创建表头
+        Row headerRow = sheet.createRow(0);
+        String[] headers = {"ID", "促销活动", "开始时间", "结束时间", "状态"};
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+        }
+
+        // 填充数据
+        for (int i = 0; i < saleList.size(); i++) {
+            Sale sale = saleList.get(i);
+            Row row = sheet.createRow(i + 1);
+            // 将 sale.getId() 转换为 String 类型
+            row.createCell(0).setCellValue(sale.getId() != null ? sale.getId().toString() : "");
+            row.createCell(1).setCellValue(sale.getSalename() != null ? sale.getSalename() : "");
+            row.createCell(2).setCellValue(sale.getStartdate() != null ? sale.getStartdate() : "");
+            row.createCell(3).setCellValue(sale.getEnddate() != null ? sale.getEnddate() : "");
+            row.createCell(4).setCellValue(sale.getStatus() != null ? sale.getStatus() : "");
+
+        }
+
+        // 自动调整列宽
+        for (int i = 0; i < headers.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        // 将工作簿写入字节数组输出流
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        workbook.write(outputStream);
+        workbook.close();
+
+        // 设置 HTTP 响应头
+        HttpHeaders headersResponse = new HttpHeaders();
+        headersResponse.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headersResponse.setContentDispositionFormData("attachment", "促销活动列表.xlsx");
+
+        // 返回响应实体
+        return ResponseEntity.ok()
+                .headers(headersResponse)
+                .body(outputStream.toByteArray());
+    }
+
 }

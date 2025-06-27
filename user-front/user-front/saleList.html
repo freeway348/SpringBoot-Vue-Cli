@@ -21,6 +21,10 @@
 					<el-button type="primary" icon="el-icon-circle-plus-outline
 " @click="showAddSale">添加</el-button>
 				</el-form-item>
+				
+				<el-form-item>
+					<el-button type="primary" @click="exportSaleList">导出用户列表</el-button>
+				</el-form-item>
 			</el-form>
 			
 		
@@ -157,7 +161,7 @@
 			},
 			methods:{ 
 				filterTag(value, row) {
-				        return row.status === value;
+					return row.status === value;
 				},
 				// 修改当前页面值，实现的功能就是点击前往下一页，并显示下一页的内容
 				handleCurrentChange(val){ // val 就是目前的页码
@@ -270,6 +274,23 @@
 							type: 'info',
 							message: '已取消删除'
 						});
+					});
+				},
+				exportSaleList() {
+					axios({
+						url: "http://localhost:8088/sale/export",
+						method: "get",
+						responseType: "blob"
+					}).then(response => {
+						const url = window.URL.createObjectURL(new Blob([response.data]));
+						const link = document.createElement("a");
+						link.href = url;
+						link.setAttribute("download", "促销活动列表.xlsx");
+						document.body.appendChild(link);
+						link.click();
+						document.body.removeChild(link);
+					}).catch(error => {
+						this.$message.error("导出失败：" + error.message);
 					});
 				}
 			},

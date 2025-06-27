@@ -21,4 +21,5 @@ public interface SaleService extends IService<Sale> {
     // 用户分页查询
     Page<Sale> pageSale(QuerySale querySale); // (查询按钮点击事件)
 
+
 }
