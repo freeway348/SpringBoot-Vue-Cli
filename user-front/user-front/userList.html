@@ -42,7 +42,7 @@
 					<!-- 虽然表格中没有password变量，但后台查询结果返回了password，所以在scope里也有password变量，所以在修改用户对话框里有password数据 -->
 					<template slot-scope="scope"> <!--该scope存储的数据就是userList(整个表)的数据-->
 						<el-button type="text" size="small" @click="showUpdateUser(scope.row)">修改</el-button> <!--获取一行的数据-->
-						<el-button type="text" size="small">删除</el-button>
+						<el-button type="text" size="small" @click="deleteUser(scope.row.id)">删除</el-button>
 					</template>
 				</el-table-column>
 			</el-table>
@@ -202,7 +202,7 @@
 					axios.post("http://localhost:8088/user/add", this.addUser)
 					.then(result=>{
 						let data = result.data;
-						if (data.code = 200){
+						if (data.code == 200){
 							this.$message.success(data.msg);
 							this.addUserVisible=false;
 							this.getUserList();
@@ -232,7 +232,7 @@
 					axios.post("http://localhost:8088/user/update", this.updateUser)
 					.then(result=>{
 						let data = result.data;
-						if (data.code = 200){
+						if (data.code == 200){
 							this.$message.success(data.msg);
 							this.updateUserVisible=false;
 						}else{
@@ -240,6 +240,35 @@
 						
 						}
 					})
+				},
+				deleteUser(id){
+					// 1. 通过确认窗来确认是否要删除 ----- 防止误删除
+					this.$confirm('确定要删除该条记录吗?', '提示',{
+					  confirmButtonText: '确定',
+					  cancelButtonText: '取消',
+					  type: 'warning'
+					}).then(() => { // 点击确定后实现的是.then方法里的内容
+					  // 2. 当确认要删除时，发送请求，然后处理返回结果
+						let param = {};
+						param.id = id;
+						// {params:param}：使用Get方式的形式传入，否则无法将数据传送给后台，也就无法执行删除操作
+						// {params:xxxxx}：固定写法
+						axios.delete("http://localhost:8088/user/delete", { params: param })
+						.then(result => {
+							let data = result.data;
+							if (data.code == 200) {
+								this.$message.success(data.msg);
+								this.getUserList();
+							} else {
+								this.$message.error(data.msg);
+							}
+						});
+					}).catch(() => {
+						this.$message({
+							type: 'info',
+							message: '已取消删除'
+						});
+					});
 				}
 			},
 			mounted(){ // 当页面加载完成后，自动触发的事件

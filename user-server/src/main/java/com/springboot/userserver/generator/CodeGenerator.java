@@ -50,7 +50,7 @@ public class CodeGenerator {
         mpg.setDataSource(dsc);
         // 包配置
         PackageConfig pc = new PackageConfig();
-        pc.setModuleName("user");// 模块名，生成后的代码都会放在该名字的module中
+        pc.setModuleName("sale");// 模块名，生成后的代码都会放在该名字的module中
         pc.setParent("com.springboot.userserver"); // user模块所在的位置
         mpg.setPackageInfo(pc);
         // 自定义配置
@@ -82,7 +82,7 @@ public class CodeGenerator {
         // strategy.setSuperEntityClass("com.baomidou.ant.common.BaseEntity");
         strategy.setRestControllerStyle(true);
         // strategy.setSuperControllerClass("com.baomidou.ant.common.BaseController");
-        strategy.setInclude("user");// 表名
+        strategy.setInclude("sale");// 表名
         // strategy.setSuperEntityColumns("id");
         // strategy.setControllerMappingHyphenStyle(true);
         // strategy.setTablePrefix(pc.getModuleName() + "_");

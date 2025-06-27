@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<script src="js/vue.js"></script>
+		<script src="js/index.js"></script>
+		<script src="js/axios.min.js"></script>
+		<link href="css/index.css" rel="stylesheet"/>
+	</head>
+	<body>
+		<div id="saleApp">
+			<el-form :inline="true">
+				<el-form-item>
+					<el-input v-model="salename" placeholder="促销活动"></el-input>
+				</el-form-item>
+				<el-form-item>
+					<el-button type="primary" icon="el-icon-search" @click="getSaleList">查询</el-button>
+				</el-form-item>
+				<el-form-item>
+					<el-button type="primary" icon="el-icon-circle-plus-outline
+" @click="showAddSale">添加</el-button>
+				</el-form-item>
+			</el-form>
+			
+			
+			<!-- 表格 -->
+			<el-table :data="saleList" border style="width: 100%">
+				<el-table-column fixed prop="id" label="序号">
+				</el-table-column>
+				<el-table-column prop="salename" label="促销活动">
+				</el-table-column>
+				<el-table-column prop="startdate" label="开始时间">
+				</el-table-column>
+				<el-table-column prop="enddate" label="结束时间">
+				</el-table-column>
+				<el-table-column prop="status" label="状态">
+				</el-table-column>
+				
+				<el-table-column fixed="right" label="操作" width="100">
+					<!--  scopre = saleList，而不是与id、salename这些字段对应 -->
+					<!-- 虽然表格中没有password变量，但后台查询结果返回了password，所以在scope里也有password变量，所以在修改用户对话框里有password数据 -->
+					<template slot-scope="scope"> <!--该scope存储的数据就是saleList(整个表)的数据-->
+						<el-button type="primary" icon="el-icon-edit" circle size="small" @click="showUpdateSale(scope.row)"></el-button> <!--获取一行的数据-->
+						<el-button type="danger" icon="el-icon-delete" circle size="small" @click="deleteSale(scope.row.id)"></el-button>
+					</template>
+				</el-table-column>
+			</el-table>
+			
+			<!-- 分页 -->
+			<!-- 
+			 current-page：当前页，页码
+			 page-size：每页显示的数据条数
+			 total：总数据条数
+			 
+			 size-change：当pageSize变化时间，触发的事件
+			 current-change：当页码发生变化时，触发的事件
+			 -->
+			<el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+				:current-page="pageNumber" :page-sizes="[5, 10, 20, 50]" :page-size="pageSize"
+				layout="total, sizes, prev, pager, next, jumper" :total="total" style="text-align: right">
+			</el-pagination>
+			
+			
+			<!--
+				visible.sync:控制对话框是否显示的开关，默认为false，如果为true表示打开对话框，如果为false，表示关闭对话框
+			-->
+			<el-dialog title="添加促销活动" :visible.sync="addSaleVisible">
+			  <el-form :model="addSale"> <!--初始是个空对象，在其中加入几个变量，它就存储了多少个变量-->
+			    <el-form-item label="促销活动" :label-width="formLabelWidth">
+			      <el-input v-model="addSale.salename" autocomplete="off"></el-input>
+			    </el-form-item> <!--添加属性到addSale中-->
+				<el-form-item label="开始时间" :label-width="formLabelWidth">
+				  <el-input v-model="addSale.startdate" autocomplete="off"></el-input>
+				</el-form-item>
+				<el-form-item label="结束时间" :label-width="formLabelWidth">
+				  <el-input v-model="addSale.enddate" autocomplete="off"></el-input>
+				</el-form-item>
+				
+			    <el-form-item label="状态" :label-width="formLabelWidth">
+			      <el-select v-model="addSale.status" placeholder="请选择">
+			        <el-option label="未开始" value="未开始"></el-option> <!--label是能看到的值，最终能存入数据库的就是value中的值-->
+			        <el-option label="进行中" value="进行中"></el-option>
+					<el-option label="已结束" value="已结束"></el-option>
+			      </el-select>
+			    </el-form-item>
+				
+				
+			  </el-form>
+			  <div slot="footer" class="dialog-footer">
+			    <el-button @click="cancelAddSale">取 消</el-button>
+			    <el-button type="primary" @click="saveSale">确 定</el-button>
+			  </div>
+			</el-dialog>
+			
+			
+			<!--修改用户对话框-->
+			<el-dialog title="修改促销活动信息" :visible.sync="updateSaleVisible">
+			  <el-form :model="updateSale"> <!--初始是个空对象，在其中加入几个变量，它就存储了多少个变量-->
+			    <el-form-item label="促销活动" :label-width="formLabelWidth">
+			      <el-input v-model="updateSale.salename" autocomplete="off"></el-input>
+			    </el-form-item> <!--添加属性到updateSale中-->
+				<el-form-item label="开始时间" :label-width="formLabelWidth">
+				  <el-input v-model="updateSale.startdate" autocomplete="off"></el-input>
+				</el-form-item>
+				<el-form-item label="结束时间" :label-width="formLabelWidth">
+				  <el-input v-model="updateSale.enddate" autocomplete="off"></el-input>
+				</el-form-item>
+				
+			    <el-form-item label="状态" :label-width="formLabelWidth">
+			      <el-select v-model="addSale.status" placeholder="请选择">
+			        <el-option label="未开始" value="未开始"></el-option> <!--label是能看到的值，最终能存入数据库的就是value中的值-->
+			        <el-option label="进行中" value="进行中"></el-option>
+			    	<el-option label="已结束" value="已结束"></el-option>
+			      </el-select>
+			    </el-form-item>
+				
+			  </el-form>
+			  <div slot="footer" class="dialog-footer">
+			    <el-button @click="cancelUpdateSale">取 消</el-button>
+			    <el-button type="primary" @click="modifySale">确 定</el-button>
+			  </div>
+			</el-dialog>
+			
+		</div>
+	</body>
+	
+	<script>
+		new Vue({
+			el:"#saleApp",
+			data(){
+				return { // 设置默认值
+					salename:'',
+					saleList: [],
+					pageNumber: 1,
+					pageSize: 5,
+					total: 0,
+					addSaleVisible: false,
+					addSale:{}, // 初始化为空对象
+					formLabelWidth: '80px',
+					updateSaleVisible: false,
+					updateSale:{}
+				}
+			},
+			methods:{ 
+				// 修改当前页面值，实现的功能就是点击前往下一页，并显示下一页的内容
+				handleCurrentChange(val){ // val 就是目前的页码
+					// 1. 把新页码赋值给pageNumber
+					this.pageNumber = val;
+					// 2. 根据新页码刷新链表
+					this.getSaleList();
+					
+				},
+				// 修改每页显示最大数量
+				handleSizeChange(val){ // 修改每页显示条数时，会将新的每页显示条数传给val
+					this.pageSize = val;
+					this.getSaleList();
+				},
+				getSaleList(){
+					// 1. 封装参数
+					let param = {};
+					param.pageNumber = this.pageNumber;
+					param.pageSize = this.pageSize;
+					param.salename = this.salename;
+					
+					// 2. 发送请求，获取结果
+					// axios的get请求传递参数是固定格式：{params:xxxx}  xxxx 是传递的参数
+					axios.get("http://localhost:8088/sale/page", {params: param})
+					.then(result=>{
+						let data = result.data; // 后台返回的数据存储在data中
+						this.saleList = data.rows;
+						this.total = data.total;
+					})
+					
+				},
+				showAddSale(){
+					// 打开添加用户对话框
+					this.addSaleVisible = true;
+				},
+				cancelAddSale(){
+					// 先清空addSale对象
+					this.addSale = {};
+					
+					
+					// 关闭添加用户对话框
+					this.addSaleVisible = false;
+				},
+				saveSale(){
+					axios.post("http://localhost:8088/sale/add", this.addSale)
+					.then(result=>{
+						let data = result.data;
+						if (data.code == 200){
+							this.$message.success(data.msg);
+							this.addSaleVisible=false;
+							this.getSaleList();
+							this.addSale={};
+						}else{
+							this.$message.error(data.msg);
+						
+						}
+					})
+				},
+				showUpdateSale(row){
+					// 1. 把当前行数据回写到updateSale对象，使当前行数据显示在修改对话框中
+					this.updateSale=row;
+					
+					// 2. 打开修改用户对话框
+					this.updateSaleVisible=true;
+				},
+				cancelUpdateSale(){
+					// 1. 直接关闭修改用户对话框
+					this.updateSaleVisible=false;
+					// 因为修改的是scope.row，而scope.row对应的是表单里的数据，所以该修改对表单也进行了修改，取消后表单会显示原先想要修改的内容，但刷新后会消失（因为并未载入数据库中）
+					// 2. 刷新列表，解决取消后表格数据依然被修改的问题
+					this.getSaleList();
+				
+				},
+				modifySale(){ // 将修改的数据提交到后台，到后台去保存
+					axios.post("http://localhost:8088/sale/update", this.updateSale)
+					.then(result=>{
+						let data = result.data;
+						if (data.code == 200){
+							this.$message.success(data.msg);
+							this.updateSaleVisible=false;
+						}else{
+							this.$message.error(data.msg);
+						
+						}
+					})
+				},
+				deleteSale(id){
+					// 1. 通过确认窗来确认是否要删除 ----- 防止误删除
+					this.$confirm('确定要删除该条记录吗?', '提示',{
+					  confirmButtonText: '确定',
+					  cancelButtonText: '取消',
+					  type: 'warning'
+					}).then(() => { // 点击确定后实现的是.then方法里的内容
+					  // 2. 当确认要删除时，发送请求，然后处理返回结果
+						let param = {};
+						param.id = id;
+						// {params:param}：使用Get方式的形式传入，否则无法将数据传送给后台，也就无法执行删除操作
+						// {params:xxxxx}：固定写法
+						axios.delete("http://localhost:8088/sale/delete", { params: param })
+						.then(result => {
+							let data = result.data;
+							if (data.code == 200) {
+								this.$message.success(data.msg);
+								this.getSaleList();
+							} else {
+								this.$message.error(data.msg);
+							}
+						});
+					}).catch(() => {
+						this.$message({
+							type: 'info',
+							message: '已取消删除'
+						});
+					});
+				}
+			},
+			mounted(){ // 当页面加载完成后，自动触发的事件
+				this.getSaleList();
+			}
+		})
+	</script>
+	
+	
+</html>

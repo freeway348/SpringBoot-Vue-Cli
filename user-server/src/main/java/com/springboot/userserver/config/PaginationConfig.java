@@ -12,7 +12,7 @@ public class PaginationConfig {
     * PaginationInterceptor就是一个分页拦截器，会自动在sql语句后添加limit子语句
     *
     *
-    * */
+    */
 
 
     @Bean // 表示这是SpringBoot的bean对象

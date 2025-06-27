@@ -116,5 +116,25 @@ public class UserController {
         return obj;
     }
 
+    @DeleteMapping("/delete") // 前端调用axios.delete需要改Mapping导向路径
+    public JSONObject delete(Integer id){
+
+        boolean result = userService.removeById(id);
+
+        // 如果给多张表进行操作，则需要添加事务，否则可能会出现数据不一致的情况（可能一张表成功，另一张表却失败，此时需要回滚，否则无法完成任务）
+
+        JSONObject obj = new JSONObject();
+
+        if (result){
+            obj.put("code", 200);
+            obj.put("msg", "删除用户成功");
+        }else {
+            obj.put("code", 500);
+            obj.put("msg", "删除用户失败");
+        }
+
+        return obj;
+    }
+
 
 }
