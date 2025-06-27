@@ -23,6 +23,7 @@
 				</el-form-item>
 			</el-form>
 			
+		
 			
 			<!-- 表格 -->
 			<el-table :data="saleList" border style="width: 100%">
@@ -34,7 +35,18 @@
 				</el-table-column>
 				<el-table-column prop="enddate" label="结束时间">
 				</el-table-column>
-				<el-table-column prop="status" label="状态">
+				 <el-table-column
+				      prop="status"
+				      label="状态"
+				      width="100"
+				      :filters="[{ text: '未开始', value: '未开始' }, { text: '进行中', value: '进行中' }, {text:'已结束', value:'已结束'}]"
+				      :filter-method="filterTag"
+				      filter-placement="bottom-end">
+				      <template slot-scope="scope">
+				        <el-tag
+				          :type="scope.row.status === '进行中' ? 'warning' : 'info'"
+				          disable-transitions>{{scope.row.status}}</el-tag>
+				      </template>
 				</el-table-column>
 				
 				<el-table-column fixed="right" label="操作" width="100">
@@ -132,6 +144,7 @@
 				return { // 设置默认值
 					salename:'',
 					saleList: [],
+					status: '',
 					pageNumber: 1,
 					pageSize: 5,
 					total: 0,
@@ -143,6 +156,9 @@
 				}
 			},
 			methods:{ 
+				filterTag(value, row) {
+				        return row.status === value;
+				},
 				// 修改当前页面值，实现的功能就是点击前往下一页，并显示下一页的内容
 				handleCurrentChange(val){ // val 就是目前的页码
 					// 1. 把新页码赋值给pageNumber
@@ -162,7 +178,6 @@
 					param.pageNumber = this.pageNumber;
 					param.pageSize = this.pageSize;
 					param.salename = this.salename;
-					
 					// 2. 发送请求，获取结果
 					// axios的get请求传递参数是固定格式：{params:xxxx}  xxxx 是传递的参数
 					axios.get("http://localhost:8088/sale/page", {params: param})

@@ -13,6 +13,7 @@ import com.springboot.userserver.user.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * <p>
@@ -98,5 +99,36 @@ public class SaleController {
         }
 
         return obj;
+    }
+
+    @GetMapping("/dashboard/stats")
+    public JSONObject getSaleStats() {
+        // 从数据库获取所有用户信息
+        List<Sale> saleList = saleService.list();
+        JSONObject stats = new JSONObject();
+
+        // 初始化统计变量
+        int nstCount = 0;
+        int ingCount = 0;
+        int endCount = 0;
+
+        // 遍历用户数据进行统计
+        for (Sale sale : saleList) {
+            String role = sale.getStatus();
+            if ("未开始".equals(role)) {
+                nstCount++;
+            } else if ("进行中".equals(role)) {
+                ingCount++;
+            } else {
+                endCount++;
+            }
+
+        }
+
+        // 将统计结果放入 JSON 对象
+        stats.put("nstCount", nstCount);
+        stats.put("ingCount", ingCount);
+        stats.put("endCount", endCount);
+        return stats;
     }
 }

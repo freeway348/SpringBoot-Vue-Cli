@@ -29,7 +29,7 @@ public class SaleServiceImpl extends ServiceImpl<SaleMapper, Sale> implements Sa
 
         // 2. 判断筛选条件是否为空，不为空则给条件构造器，构造筛选条件
         QueryWrapper<Sale> w = new QueryWrapper<>();
-        if(!ObjectUtils.isEmpty(querySale.getSalename())){
+        if (!ObjectUtils.isEmpty(querySale.getSalename())) {
             // 相当于sql: where salename like '% ? %'
             w.like("salename", querySale.getSalename());
         }

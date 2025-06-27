@@ -10,4 +10,5 @@ public class QuerySale {
 
     // 筛选条件，可选
     private String salename; // 查询框所查询的数据
+    private String status;
 }
